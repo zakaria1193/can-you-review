@@ -16,6 +16,12 @@ def main():
 
     args = parser.parse_args()
 
+    if not args.url:
+        parser.error("GitLab URL is required")
+
+    if not args.token:
+        parser.error("GitLab private token is required")
+
     # Set your GitLab URL and private token
     gitlab_url = args.url
     private_token = args.token
