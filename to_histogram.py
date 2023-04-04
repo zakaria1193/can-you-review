@@ -55,7 +55,7 @@ def main():
     parser = argparse.ArgumentParser(description='Create histograms from review counts CSV.')
 
     parser.add_argument('csv_file', help='CSV file to create histogram from')
-    parser.add_argument('--output_dir', help='Directory to save histogram to', default='output_histograms')
+    parser.add_argument('--output_dir', help='Directory to save histogram to', default='output')
     args = parser.parse_args()
 
     create_histogram(args.csv_file, args.output_dir)
