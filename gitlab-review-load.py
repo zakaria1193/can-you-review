@@ -13,6 +13,7 @@ def main():
     parser.add_argument('--url', default=os.environ.get('GITLAB_URL'), help='GitLab URL')
     parser.add_argument('--token', default=os.environ.get('GITLAB_PRIVATE_TOKEN'), help='Private token')
     parser.add_argument('--weeks', default=2, type=int, help='Number of weeks to consider for MR activity')
+    parser.add_argument('--output_dir', help='Directory to save csv to', default='output')
 
     args = parser.parse_args()
 
@@ -43,7 +44,8 @@ def main():
     total_multiple_review_count = defaultdict(int)
 
     # Create CSV file
-    with open('review_counts.csv', 'w', newline='') as csvfile:
+    csv_filename = os.path.join(args.output_dir, 'review_counts.csv')
+    with open(csv_filename, 'w', newline='') as csvfile:
         fieldnames = ['project_id', 'project_name', 'username', 'single_review_count', 'multiple_review_count']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
