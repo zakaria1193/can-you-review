@@ -2,6 +2,7 @@
 
 import csv
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from collections import defaultdict
 import argparse
 import os
@@ -33,6 +34,7 @@ def create_review_plot(project_name, project_data, review_type, output_dir):
     ax.bar(categories, counts)
     ax.set_ylabel(f'Number of {review_type.capitalize()} Reviews')
     ax.set_title(f'{review_type.capitalize()} Review Counts for Project: {project_name}')
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))  # set y-axis to display only integers
     plt.xticks(rotation='vertical')
     fig.tight_layout()
     fig.savefig(os.path.join(output_dir, f'{project_name}_{review_type}_review_histogram.png'))
