@@ -3,6 +3,7 @@ image: python:3.9
 stages:
   - build
   - deploy
+  - nightly
 
 build:
   stage: build
@@ -29,3 +30,9 @@ pages:
   only:
     - master
 
+rebuild:
+  stage: nightly
+  script:
+    - echo "Rebuilding and repushing nightly"
+  only:
+    - schedules
