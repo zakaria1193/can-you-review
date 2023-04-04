@@ -10,6 +10,7 @@ build:
     - pip install -r requirements.txt
     - rm -rf public
     - mkdir public
+    - mkdir public/output
     - python gitlab-review-load.py --output_dir=public/output
     - python to_histogram.py public/output/review_counts.csv --output_dir=public/output
   artifacts:
