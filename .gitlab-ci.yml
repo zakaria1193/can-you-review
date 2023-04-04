@@ -8,8 +8,8 @@ build:
   stage: build
   script:
     - pip install -r requirements.txt
-    - python gitlab-review-load.py --project_id=$GITLAB_PROJECT_ID --private_token=$GITLAB_PRIVATE_TOKEN --output_dir=public/output
-    - python to_histogram.py --csv_file=public/output/review_counts.csv --output_dir=public/output
+    - python gitlab-review-load.py --output_dir=public/output
+    - python to_histogram.py public/output/review_counts.csv --output_dir=public/output
   artifacts:
     paths:
       - public/output/
