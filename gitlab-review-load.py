@@ -13,7 +13,7 @@ def main():
     parser.add_argument('--url', default=os.environ.get('GITLAB_URL'), help='GitLab URL')
     parser.add_argument('--token', default=os.environ.get('GITLAB_PRIVATE_TOKEN'), help='Private token')
     parser.add_argument('--weeks', default=2, type=int, help='Number of weeks to consider for MR activity')
-    parser.add_argument('--output_dir', help='Directory to save csv to', default='output')
+    parser.add_argument('--output_dir', help='Directory to save csv to', default='public/output')
 
     args = parser.parse_args()
 
