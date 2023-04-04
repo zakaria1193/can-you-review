@@ -15,13 +15,12 @@ def read_csv_data(csv_file):
         reader = csv.DictReader(csvfile)
 
         for row in reader:
-            if row['project_name'] != 'all':
-                project_name = row['project_name']
-                username = row['username']
-                single_review_count = int(row['single_review_count'])
-                multiple_review_count = int(row['multiple_review_count'])
-                data[project_name][username]['single'] += single_review_count
-                data[project_name][username]['multiple'] += multiple_review_count
+            project_name = row['project_name']
+            username = row['username']
+            single_review_count = int(row['single_review_count'])
+            multiple_review_count = int(row['multiple_review_count'])
+            data[project_name][username]['single'] += single_review_count
+            data[project_name][username]['multiple'] += multiple_review_count
 
     return data
 
