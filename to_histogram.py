@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+import json
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from collections import defaultdict
@@ -40,6 +41,12 @@ def create_review_plot(project_name, project_data, review_type, output_dir):
     fig.savefig(os.path.join(output_dir, f'{project_name}_{review_type}_review_histogram.png'))
     plt.close(fig)
 
+def create_index_json(output_dir):
+    files = [f for f in os.listdir(output_dir) if os.path.isfile(os.path.join(output_dir, f))]
+    histogram_files = [file for file in files if file.endswith('_single_review_histogram.png') or file.endswith('_multiple_review_histogram.png')]
+
+    with open(os.path.join(output_dir, 'index.json'), 'w') as json_file:
+        json.dump(histogram_files, json_file)
 
 def create_histogram(csv_file, output_dir):
     if not os.path.exists(output_dir):
@@ -50,6 +57,8 @@ def create_histogram(csv_file, output_dir):
     for project_name, project_data in data.items():
         create_review_plot(project_name, project_data, 'single', output_dir)
         create_review_plot(project_name, project_data, 'multiple', output_dir)
+
+    create_index_json(output_dir)
 
 def main():
     parser = argparse.ArgumentParser(description='Create histograms from review counts CSV.')
