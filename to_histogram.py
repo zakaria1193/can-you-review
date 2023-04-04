@@ -17,16 +17,16 @@ def read_csv_data(csv_file):
         for row in reader:
             project_name = row['project_name']
             username = row['username']
-            single_review_count = int(row['single_review_count'])
+            sole_review_count = int(row['sole_review_count'])
             multiple_review_count = int(row['multiple_review_count'])
-            data[project_name][username]['single'] += single_review_count
+            data[project_name][username]['sole'] += sole_review_count
             data[project_name][username]['multiple'] += multiple_review_count
 
     return data
 
 
 def create_review_plot(project_name, project_data, review_type, output_dir):
-    sorted_users = sorted(project_data.keys(), key=lambda user: project_data[user]['single'] + project_data[user]['multiple'], reverse=True)
+    sorted_users = sorted(project_data.keys(), key=lambda user: project_data[user]['sole'] + project_data[user]['multiple'], reverse=True)
 
     fig, ax = plt.subplots()
     categories = [username for username in sorted_users]
@@ -42,7 +42,7 @@ def create_review_plot(project_name, project_data, review_type, output_dir):
 
 def create_index_json(output_dir):
     files = [f for f in os.listdir(output_dir) if os.path.isfile(os.path.join(output_dir, f))]
-    histogram_files = [file for file in files if file.endswith('_single_review_histogram.png') or file.endswith('_multiple_review_histogram.png')]
+    histogram_files = [file for file in files if file.endswith('_sole_review_histogram.png') or file.endswith('_multiple_review_histogram.png')]
 
     with open(os.path.join(output_dir, 'index.json'), 'w') as json_file:
         json.dump(histogram_files, json_file)
@@ -54,7 +54,7 @@ def create_histogram(csv_file, output_dir):
     data = read_csv_data(csv_file)
 
     for project_name, project_data in data.items():
-        create_review_plot(project_name, project_data, 'single', output_dir)
+        create_review_plot(project_name, project_data, 'sole', output_dir)
         create_review_plot(project_name, project_data, 'multiple', output_dir)
 
     create_index_json(output_dir)

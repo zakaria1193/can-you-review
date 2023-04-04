@@ -1,6 +1,6 @@
 
 const projectSelector = document.getElementById('project-selector');
-const singleReviewImage = document.getElementById('single-review-image');
+const soleReviewImage = document.getElementById('sole-review-image');
 const multipleReviewImage = document.getElementById('multiple-review-image');
 
 function updateProjectList(projects) {
@@ -33,8 +33,8 @@ function getProjectNames() {
     fetch('./output/index.json')
         .then((response) => response.json())
         .then((files) => {
-            const singleReviewFiles = files.filter((file) => file.endsWith('_single_review_histogram.png'));
-            const projectNames = singleReviewFiles.map((file) => file.replace('_single_review_histogram.png', ''));
+            const soleReviewFiles = files.filter((file) => file.endsWith('_sole_review_histogram.png'));
+            const projectNames = soleReviewFiles.map((file) => file.replace('_sole_review_histogram.png', ''));
             updateProjectList(projectNames);
         });
 }
@@ -42,10 +42,10 @@ function getProjectNames() {
 function updateProject() {
     const project = projectSelector.value;
     if (project === 'All') {
-        singleReviewImage.src = './output/All_single_review_histogram.png';
+        soleReviewImage.src = './output/All_sole_review_histogram.png';
         multipleReviewImage.src = './output/All_multiple_review_histogram.png';
     } else {
-        singleReviewImage.src = `./output/${project}_single_review_histogram.png`;
+        soleReviewImage.src = `./output/${project}_sole_review_histogram.png`;
         multipleReviewImage.src = `./output/${project}_multiple_review_histogram.png`;
     }
 }

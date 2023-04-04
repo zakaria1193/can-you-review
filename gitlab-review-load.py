@@ -40,13 +40,13 @@ def main():
     print("Found {} projects".format(len(projects)))
 
     # Initialize dictionaries for total review counts
-    total_single_review_count = defaultdict(int)
+    total_sole_review_count = defaultdict(int)
     total_multiple_review_count = defaultdict(int)
 
     # Create CSV file
     csv_filename = os.path.join(args.output_dir, 'review_counts.csv')
     with open(csv_filename, 'w', newline='') as csvfile:
-        fieldnames = ['project_id', 'project_name', 'username', 'single_review_count', 'multiple_review_count']
+        fieldnames = ['project_id', 'project_name', 'username', 'sole_review_count', 'multiple_review_count']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -63,38 +63,38 @@ def main():
             print("Found {} merge requests".format(len(merge_requests)))
 
             # Count reviews for each user
-            single_review_count = defaultdict(int)
+            sole_review_count = defaultdict(int)
             multiple_review_count = defaultdict(int)
 
             for mr in merge_requests:
                 reviewers = mr.reviewers
                 if len(reviewers) == 1:
-                    single_review_count[reviewers[0]["username"]] += 1
+                    sole_review_count[reviewers[0]["username"]] += 1
                 elif len(reviewers) >= 2:
                     for reviewer in reviewers:
                         multiple_review_count[reviewer["username"]] += 1
 
             # Write review counts to CSV
-            all_reviewers = set(single_review_count.keys()) | set(multiple_review_count.keys())
+            all_reviewers = set(sole_review_count.keys()) | set(multiple_review_count.keys())
             for reviewer in all_reviewers:
                 writer.writerow({
                     'project_id': project.id,
                     'project_name': project.name,
                     'username': reviewer,
-                    'single_review_count': single_review_count[reviewer],
+                    'sole_review_count': sole_review_count[reviewer],
                     'multiple_review_count': multiple_review_count[reviewer]
                 })
-                total_single_review_count[reviewer] += single_review_count[reviewer]
+                total_sole_review_count[reviewer] += sole_review_count[reviewer]
                 total_multiple_review_count[reviewer] += multiple_review_count[reviewer]
 
         # Write total review counts to CSV
-        all_reviewers = set(total_single_review_count.keys()) | set(total_multiple_review_count.keys())
+        all_reviewers = set(total_sole_review_count.keys()) | set(total_multiple_review_count.keys())
         for reviewer in all_reviewers:
             writer.writerow({
                 'project_id': '',
                 'project_name': 'all',
                 "username": reviewer,
-                "single_review_count": total_single_review_count[reviewer],
+                "sole_review_count": total_sole_review_count[reviewer],
                 "multiple_review_count": total_multiple_review_count[reviewer]
             })
 
