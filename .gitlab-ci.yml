@@ -8,6 +8,8 @@ build:
   stage: build
   script:
     - pip install -r requirements.txt
+    - rm -rf public
+    - mkdir public
     - python gitlab-review-load.py --output_dir=public/output
     - python to_histogram.py public/output/review_counts.csv --output_dir=public/output
   artifacts:
@@ -17,9 +19,6 @@ build:
 pages:
   stage: deploy
   script:
-    - mv public public_old
-    - mkdir public
-    - mv public_old/* public/
     - mv index.html public/
     - mv styles.css public/
     - mv scripts.js public/
