@@ -15,6 +15,9 @@ def main():
     parser.add_argument('--weeks', default=2, type=int, help='Number of weeks to consider for MR activity')
     parser.add_argument('--output_dir', help='Directory to save csv to', default='public/output')
 
+    # Optional project search parameters
+    parser.add_argument('--group_id', help='Group ID')
+
     args = parser.parse_args()
 
     if not args.url:
@@ -36,7 +39,11 @@ def main():
     
     # Get all projects
     print("Getting all projects...")
-    projects = gl.projects.list(all=True)
+    if args.group_id:
+        group = gl.groups.get(args.group_id)
+        projects = group.projects.list(iterator=True)
+    else:
+        projects = gl.projects.list(all=True)
     print("Found {} projects".format(len(projects)))
 
     # Initialize dictionaries for total review counts
