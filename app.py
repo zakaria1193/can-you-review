@@ -1,7 +1,9 @@
 from flask import Flask, render_template
+from flask_frozen import Freezer
 import json
 
 app = Flask(__name__)
+freezer = Freezer(app)
 
 # Sample data
 sole_review_count = {

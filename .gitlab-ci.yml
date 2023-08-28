@@ -1,16 +1,29 @@
-# The Docker image that will be used to build your app
-image: python:latest
-# Functions that should be executed before the build script is run
+image: python:3.8
+
+stages:
+  - build
+
 before_script:
   - pip install -r requirements.txt
-pages:
+
+build:
+  stage: build
   script:
-    - python app.py
+    - python app.py build
   artifacts:
     paths:
-      # The folder that contains the files to be exposed at the Page URL
+      - build
+
+pages:
+  stage: deploy
+  image: ruby:2.7
+  script:
+    - gem install gitlab-pages
+    - gitlab-pages
+  dependencies:
+    - build
+  artifacts:
+    paths:
       - public
-  rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  only:
+    - master # You can change this to the branch you want to deploy to GitLab Pages
