@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Review Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <h1>Sole Review Count:</h1>
+    <canvas id="soleReviewChart"></canvas>
+
+    <h1>Multiple Review Count:</h1>
+    <canvas id="multipleReviewChart"></canvas>
+
+    <script>
+      var soleReviewData = {{ sole_review_data|safe }};
+      var multipleReviewData = {{ multiple_review_data|safe }};
+
+      function createChart(data, id, label) {
+          var usernames = data.map(item => item.username);
+          var counts = data.map(item => item.all);
+
+          var ctx = document.getElementById(id).getContext('2d');
+          var chart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                  labels: usernames,
+                  datasets: [{
+                      label: label,
+                      data: counts,
+                      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                      borderColor: 'rgba(75, 192, 192, 1)',
+                      borderWidth: 1
+                  }]
+              },
+              options: {
+                  scales: {
+                      y: {
+                          beginAtZero: true
+                      }
+                  }
+              }
+          });
+      }
+
+      createChart(soleReviewData, 'soleReviewChart', 'Sole Review Count');
+      createChart(multipleReviewData, 'multipleReviewChart', 'Multiple Review Count');
+    </script>
+  </body>
+</html>

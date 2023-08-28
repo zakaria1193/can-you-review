@@ -88,6 +88,8 @@ def find_user_with_most_reviews(url, token, weeks, group_id):
             multiple_review_count[reviewer][all_project_name] += \
                 multiple_review_count[reviewer][project_name]
 
+
+    print(sole_review_count, multiple_review_count)
     return sole_review_count, multiple_review_count
 
 
