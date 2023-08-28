@@ -1,111 +1,108 @@
 #!/usr/bin/env python3
 
 import os
-import csv
 import gitlab
 import datetime
 import argparse
 from collections import defaultdict
 
-def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Find the user with the most reviews in all GitLab projects.')
-    parser.add_argument('--url', default=os.environ.get('GITLAB_URL'), help='GitLab URL')
-    parser.add_argument('--token', default=os.environ.get('GITLAB_PRIVATE_TOKEN'), help='Private token')
-    parser.add_argument('--weeks', default=2, type=int, help='Number of weeks to consider for MR activity')
-    parser.add_argument('--output_dir', help='Directory to save csv to', default='public/output')
 
-    # Optional project search parameters
-    parser.add_argument('--group_id', help='Group ID')
-
-    args = parser.parse_args()
-
-    if not args.url:
-        parser.error("GitLab URL is required")
-
-    if not args.token:
-        parser.error("GitLab private token is required")
-
+def find_user_with_most_reviews(url, token, weeks, group_id):
     # Set your GitLab URL and private token
-    gitlab_url = args.url
-    private_token = args.token
+    gitlab_url = url
+    private_token = token
 
     # Calculate the date n weeks ago
-    weeks_ago = datetime.datetime.now() - datetime.timedelta(weeks=args.weeks)
+    weeks_ago = datetime.datetime.now() - datetime.timedelta(weeks=weeks)
 
     # Initialize GitLab API client
     print("Initializing GitLab API client")
     gl = gitlab.Gitlab(gitlab_url, private_token=private_token)
-    
+
     # Get all projects
-    print("Getting all projects...")
-    if args.group_id:
-        group = gl.groups.get(args.group_id)
-        projects = group.projects.list(iterator=True)
-    else:
-        projects = gl.projects.list(all=True)
-    print("Found {} projects".format(len(projects)))
+    print("Getting all mrs...")
+    group = gl.groups.get(group_id)
+    merge_requests = group.mergerequests.list(all=True, state="opened", updated_after=weeks_ago)
+    print("Found {} merge requests".format(len(merge_requests)))
 
-    # Initialize dictionaries for total review counts
-    total_sole_review_count = defaultdict(int)
-    total_multiple_review_count = defaultdict(int)
+    # Count reviews for each user
+    sole_review_count = {}
+    multiple_review_count = {}
 
-    # Create CSV file
-    csv_filename = os.path.join(args.output_dir, 'review_counts.csv')
-    with open(csv_filename, 'w', newline='') as csvfile:
-        fieldnames = ['project_id', 'project_name', 'username', 'sole_review_count', 'multiple_review_count']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+    def init_dict_if_not_exists(dict, key, value):
+        if key not in dict:
+            dict[key] = value
+        else:
+            print("Warning: key {} already exists in dict".format(key))
 
-        # Iterate through all projects
-        for project in projects:
-            # Get merge requests
-            print("Getting merge requests for project {}".format(project.name))
-            try:
-                merge_requests = project.mergerequests.list(state="opened", updated_after=weeks_ago)
-            except gitlab.exceptions.GitlabError:
-                print("Error: Could not get merge requests for project {}".format(project.name))
+    print("Going through merge requests:")
+
+    # Count reviews for each user by project
+    for mr in merge_requests:
+        project_name = gl.projects.get(mr.project_id).name
+
+        # Add subdicts for each user for each project
+        reviewers = mr.reviewers
+
+        # Log for debugging
+        reviewer_names = [reviewer["username"] for reviewer in reviewers]
+        print("Project: {}, MR: {}, Reviewers: {}".format(project_name, mr.title, reviewer_names))
+
+        for reviewer in reviewers:
+            username = reviewer["username"]
+            init_dict_if_not_exists(sole_review_count, username, {})
+            init_dict_if_not_exists(sole_review_count[username], project_name, 0)
+
+            init_dict_if_not_exists(multiple_review_count, username, {})
+            init_dict_if_not_exists(multiple_review_count[username], project_name, 0)
+
+        if len(reviewers) == 1:
+            sole_review_count[reviewers[0]["username"]][project_name] += 1
+        elif len(reviewers) >= 2:
+            for reviewer in reviewers:
+                multiple_review_count[reviewer["username"]][project_name] += 1
+
+    print("-> Finished going through merge requests")
+
+    # Count reviews for each user across all projects
+    all_reviewers = set(sole_review_count.keys()) | set(multiple_review_count.keys())
+
+    for reviewer in all_reviewers:
+        # Create a fake project ID for the "all" project
+        all_project_name = "all"
+
+        # Initialize dicts if they don't exist
+        init_dict_if_not_exists(sole_review_count[reviewer], all_project_name, 0)
+        init_dict_if_not_exists(multiple_review_count[reviewer], all_project_name, 0)
+
+        # Sum up the reviews across all projects
+        for project_name in sole_review_count[reviewer]:
+            if project_name == all_project_name:
                 continue
+            sole_review_count[reviewer][all_project_name] += \
+                sole_review_count[reviewer][project_name]
 
-            print("Found {} merge requests".format(len(merge_requests)))
+        for project_name in multiple_review_count[reviewer]:
+            if project_name == all_project_name:
+                continue
+            multiple_review_count[reviewer][all_project_name] += \
+                multiple_review_count[reviewer][project_name]
 
-            # Count reviews for each user
-            sole_review_count = defaultdict(int)
-            multiple_review_count = defaultdict(int)
+    return sole_review_count, multiple_review_count
 
-            for mr in merge_requests:
-                reviewers = mr.reviewers
-                if len(reviewers) == 1:
-                    sole_review_count[reviewers[0]["username"]] += 1
-                elif len(reviewers) >= 2:
-                    for reviewer in reviewers:
-                        multiple_review_count[reviewer["username"]] += 1
 
-            # Write review counts to CSV
-            all_reviewers = set(sole_review_count.keys()) | set(multiple_review_count.keys())
-            for reviewer in all_reviewers:
-                writer.writerow({
-                    'project_id': project.id,
-                    'project_name': project.name,
-                    'username': reviewer,
-                    'sole_review_count': sole_review_count[reviewer],
-                    'multiple_review_count': multiple_review_count[reviewer]
-                })
-                total_sole_review_count[reviewer] += sole_review_count[reviewer]
-                total_multiple_review_count[reviewer] += multiple_review_count[reviewer]
+def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Find the user with the most reviews in all GitLab projects.')
+    parser.add_argument('--url', default=os.environ.get('GITLAB_URL'), help='GitLab URL', required=True)
+    parser.add_argument('--token', default=os.environ.get('GITLAB_PRIVATE_TOKEN'), help='Private token', required=True)
+    parser.add_argument('--weeks', default=2, type=int, help='Number of weeks to consider for MR activity')
+    parser.add_argument('group_id', help='Group ID to consider for MR activity')
+    args = parser.parse_args()
 
-        # Write total review counts to CSV
-        all_reviewers = set(total_sole_review_count.keys()) | set(total_multiple_review_count.keys())
-        for reviewer in all_reviewers:
-            writer.writerow({
-                'project_id': '',
-                'project_name': 'all',
-                "username": reviewer,
-                "sole_review_count": total_sole_review_count[reviewer],
-                "multiple_review_count": total_multiple_review_count[reviewer]
-            })
+    # Call the function with provided arguments
+    find_user_with_most_reviews(args.url, args.token, args.weeks, args.group_id)
 
-    print("Review counts have been written to review_counts.csv")
 
 if __name__ == "__main__":
     main()
