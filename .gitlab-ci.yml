@@ -1,38 +1,16 @@
-image: python:3.9
-
-stages:
-  - build
-  - deploy
-  - nightly
-
-build:
-  stage: build
-  script:
-    - pip install -r requirements.txt
-    - rm -rf public
-    - mkdir public
-    - mkdir public/output
-    - python gitlab-review-load.py --output_dir=public/output
-    - python to_histogram.py public/output/review_counts.csv --output_dir=public/output
-  artifacts:
-    paths:
-      - public/output/
-
+# The Docker image that will be used to build your app
+image: python:latest
+# Functions that should be executed before the build script is run
+before_script:
+  - pip install -r requirements.txt
 pages:
-  stage: deploy
   script:
-    - mv index.html public/
-    - mv styles.css public/
-    - mv scripts.js public/
+    - python app.py
   artifacts:
     paths:
+      # The folder that contains the files to be exposed at the Page URL
       - public
-  only:
-    - master
-
-rebuild:
-  stage: nightly
-  script:
-    - echo "Rebuilding and repushing nightly"
-  only:
-    - schedules
+  rules:
+    # This ensures that only pushes to the default branch will trigger
+    # a pages deploy
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
