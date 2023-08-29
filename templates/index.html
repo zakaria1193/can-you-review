@@ -5,45 +5,65 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <h1>Sole Review Count:</h1>
-    <canvas id="soleReviewChart"></canvas>
+    <h1>Review Count by Project:</h1>
+    <label for="projectSelector">Select Project:</label>
+    <select id="projectSelector" onchange="updateCharts()">
+      <option value="all">All Projects</option>
+      {% for project in project_names %}
+      <option value="{{ project }}">{{ project }}</option>
+      {% endfor %}
+    </select>
 
-    <h1>Multiple Review Count:</h1>
-    <canvas id="multipleReviewChart"></canvas>
+    <canvas id="reviewChart"></canvas>
 
     <script>
       var soleReviewData = {{ sole_review_data|safe }};
       var multipleReviewData = {{ multiple_review_data|safe }};
+      var projectNames = {{ project_names|tojson|safe }};
+      var selectedProject = "all";
 
-      function createChart(data, id, label) {
-          var usernames = data.map(item => item.username);
-          var counts = data.map(item => item.all);
+      function updateCharts() {
+        console.log("Updating charts");
+        selectedProject = document.getElementById("projectSelector").value;
 
-          var ctx = document.getElementById(id).getContext('2d');
-          var chart = new Chart(ctx, {
-              type: 'bar',
-              data: {
-                  labels: usernames,
-                  datasets: [{
-                      label: label,
-                      data: counts,
-                      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                      borderColor: 'rgba(75, 192, 192, 1)',
-                      borderWidth: 1
-                  }]
-              },
-              options: {
-                  scales: {
-                      y: {
-                          beginAtZero: true
-                      }
-                  }
-              }
-          });
+
+        createChart(soleReviewData, 'reviewChart', 'Review Count', selectedProject);
       }
 
-      createChart(soleReviewData, 'soleReviewChart', 'Sole Review Count');
-      createChart(multipleReviewData, 'multipleReviewChart', 'Multiple Review Count');
+      function createChart(data, id, label, selectedProject) {
+        var usernames = data.map(item => item.username);
+        var counts = data.map(item => item[selectedProject]);
+
+
+        // If the chart already exists, destroy it
+        if (document.getElementById(id).__chartjs) {
+          document.getElementById(id).__chartjs.destroy();
+        }
+
+        var ctx = document.getElementById(id).getContext('2d');
+        var chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: usernames,
+            datasets: [{
+              label: label,
+              data: counts,
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+
+      updateCharts();
     </script>
   </body>
 </html>
