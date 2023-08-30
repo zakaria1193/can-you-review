@@ -14,7 +14,10 @@
       {% endfor %}
     </select>
 
-    <canvas id="reviewChart"></canvas>
+    <div style="width: 80%; margin: auto">
+      <canvas id="soleReviewChart"></canvas>
+      <canvas id="multipleReviewChart"></canvas>
+    </div>
 
     <script>
       var soleReviewData = {{ sole_review_data|safe }};
@@ -27,12 +30,20 @@
         selectedProject = document.getElementById("projectSelector").value;
 
 
-        createChart(soleReviewData, 'reviewChart', 'Review Count', selectedProject);
+        createChart(soleReviewData, 'soleReviewChart', 'Review Count', selectedProject);
+        createChart(multipleReviewData, 'multipleReviewChart', 'Multiple Review Count', selectedProject);
       }
 
       function createChart(data, id, label, selectedProject) {
         var usernames = data.map(item => item.username);
         var counts = data.map(item => item[selectedProject]);
+
+        let chartStatus = Chart.getChart(id); // <canvas> id
+        if (chartStatus != undefined) {
+          chartStatus.destroy();
+        }
+
+        console.log("Creating chart with id: " + id);
 
 
         // If the chart already exists, destroy it
@@ -40,7 +51,7 @@
           document.getElementById(id).__chartjs.destroy();
         }
 
-        var ctx = document.getElementById(id).getContext('2d');
+        var ctx = document.getElementById(id);
         var chart = new Chart(ctx, {
           type: 'bar',
           data: {
