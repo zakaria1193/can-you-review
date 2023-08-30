@@ -106,5 +106,14 @@ def main():
     find_user_with_most_reviews(args.url, args.token, args.weeks, args.group_id)
 
 
+def find_user_with_most_reviews_from_env_args():
+    # Call the function with environment variables
+    return find_user_with_most_reviews(os.environ.get('GITLAB_URL'),
+                                       os.environ.get('GITLAB_PRIVATE_TOKEN'),
+                                       int(os.environ.get('GITLAB_MR_WEEKS_TO_CONSIDER')),
+                                       os.environ.get('GITLAB_GROUP_ID'))
+
+
+
 if __name__ == "__main__":
     main()

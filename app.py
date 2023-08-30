@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from flask_frozen import Freezer
 import json
+from gitlab_scrapper import find_user_with_most_reviews_from_env_args
 
 app = Flask(__name__)
 freezer = Freezer(app)
@@ -38,6 +39,11 @@ def project_names_crawler():
 
 @app.route('/')
 def index():
+    # Print to dom loading screen
+    print("Loading data from Gitlab...")
+
+    sole_review_count, multiple_review_count = find_user_with_most_reviews_from_env_args()
+
     sole_review_data = json.dumps([
         {"username": username, **projects} for username, projects in sole_review_count.items()
     ])
