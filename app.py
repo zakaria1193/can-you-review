@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_frozen import Freezer
 import json
 from gitlab_scrapper import find_user_with_most_reviews_from_env_args
@@ -36,28 +36,32 @@ def project_names_crawler():
 
     return list(set(project_names))
 
-
-@app.route('/')
-def index():
-    # Print to dom loading screen
-    print("Loading data from Gitlab...")
-
+@app.route('/get_data')
+def get_data():
     sole_review_count, multiple_review_count = find_user_with_most_reviews_from_env_args()
-
-    sole_review_data = json.dumps([
+    sole_review_data = [
         {"username": username, **projects} for username, projects in sole_review_count.items()
-    ])
+    ]
+    multiple_review_data = [
+        {"username": username, **projects} for username, projects in multiple_review_count.items()
+    ]
 
     print(sole_review_data)
-
-    multiple_review_data = json.dumps([
-        {"username": username, **projects} for username, projects in multiple_review_count.items()
-    ])
+    print(multiple_review_data)
 
     project_names = project_names_crawler()
 
-    return render_template('index.html', sole_review_data=sole_review_data,
-                           multiple_review_data=multiple_review_data, project_names=project_names)
+    data = {
+        'sole_review_data': sole_review_data,
+        'multiple_review_data': multiple_review_data,
+        'project_names': project_names
+    }
+
+    return jsonify(data)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
