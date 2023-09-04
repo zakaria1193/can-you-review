@@ -1,7 +1,6 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from flask_frozen import Freezer
-import json
-from gitlab_scrapper import find_user_with_most_reviews_from_env_args
+from gitlab_scrapper import find_user_with_most_reviews_from_env_args, get_reviews_url_for_user_name_and_env_args
 
 app = Flask(__name__)
 freezer = Freezer(app)
@@ -36,6 +35,7 @@ def project_names_crawler():
 
     return list(set(project_names))
 
+
 @app.route('/get_data')
 def get_data():
     sole_review_count, multiple_review_count = find_user_with_most_reviews_from_env_args()
@@ -58,6 +58,16 @@ def get_data():
     }
 
     return jsonify(data)
+
+
+# /get_user_reviews_url?username=
+@app.route('/get_user_reviews_url')
+def get_user_reviews_url():
+    username = request.args.get('username')
+    # return gitlab url for the user's reviews
+    url = get_reviews_url_for_user_name_and_env_args(username)
+    return jsonify({'url': url})
+
 
 @app.route('/')
 def index():

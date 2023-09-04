@@ -94,3 +94,44 @@ function createChart(data, id, label, selectedProject) {
     },
   });
 }
+
+function setClickEvent(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext("2d");
+
+  // Make sure to attach `onclick` to the canvas, **not** the chart instance
+  canvas.onclick = (evt) => {
+    // Get chart instance from the canvas
+
+    const chart = Chart.getChart(id);
+
+    const res = chart.getElementsAtEventForMode(
+      evt,
+      "nearest",
+      { intersect: true },
+      true
+    );
+    // If didn't click on a bar, `res` will be an empty array
+    if (res.length === 0) {
+      return;
+    }
+    // Alerts "You clicked on A" if you click the "A" chart
+    console.log("You clicked on " + chart.data.labels[res[0].index]);
+    open_gitlab_review_page(chart.data.labels[res[0].index]);
+  };
+
+  function open_gitlab_review_page(username) {
+    // Get url from /get_user_reviews_url
+    fetch("/get_user_reviews_url?username=" + username)
+      .then((response) => response.json())
+
+      // Open the url in a new tab
+      .then((data) => {
+        window.open(data.url, "_blank");
+      });
+  }
+}
+
+// Set click event for the charts
+setClickEvent("soleReviewChart");
+setClickEvent("multipleReviewChart");

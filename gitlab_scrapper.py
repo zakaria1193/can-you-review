@@ -114,6 +114,22 @@ def find_user_with_most_reviews_from_env_args():
                                        os.environ.get('GITLAB_GROUP_ID'))
 
 
+def get_reviews_url_for_user_name_and_env_args(username):
+    url = os.environ.get('GITLAB_URL')
+    group_id = os.environ.get('GITLAB_GROUP_ID')
+
+    # Exmaple URL:
+    # https://gitlab.com/groups/wireshark/-/merge_requests?scope=all&state=opened&reviewer_username=JaapKeuter
+
+    gl = gitlab.Gitlab(url, private_token=os.environ.get('GITLAB_PRIVATE_TOKEN'))
+
+    group_name = gl.groups.get(group_id).name
+
+    return "{}/groups/{}/-/merge_requests?scope=all&state=opened&reviewer_username={}".format(url, group_name, username)
+
+
+
+
 
 if __name__ == "__main__":
     main()
